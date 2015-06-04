@@ -10,11 +10,6 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-/**
- * TextRank关键词提取
- * @author hankcs
- */ 
 public class SearchEngine
 {
     public static final int nKeyword = 5;
@@ -22,9 +17,7 @@ public class SearchEngine
      * 阻尼系数（ＤａｍｐｉｎｇＦａｃｔｏｒ），一般取值为0.85
      */
     static final float d = 0.85f;
-    /**
-     * 最大迭代次数
-     */
+
     static final int max_iter = 200;
     static final float min_diff = 0.001f;
 
@@ -276,11 +269,7 @@ public class SearchEngine
     	in.close();
     }
     
-    /**
-     * 是否应当将这个term纳入计算，词性属于名词、动词、副词、形容词
-     * @param term
-     * @return 是否应当
-     */
+    //test that if I should include this term or I should throw it out
     public boolean shouldInclude(Term term)
     {
     	Vector<String> StopWordDictionary = new Vector<String>();
