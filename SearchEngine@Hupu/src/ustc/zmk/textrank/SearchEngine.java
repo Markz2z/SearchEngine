@@ -1,5 +1,11 @@
 package ustc.zmk.textrank;
 
+/*
+ * author:ustczmk
+ * Date:2014.9
+ * School:USTC
+ * */
+
 import org.ansj.domain.Term;
 import org.ansj.splitWord.analysis.ToAnalysis;
 
@@ -13,11 +19,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SearchEngine
 {
     public static final int nKeyword = 5;
-    /**
-     * 阻尼系数（ＤａｍｐｉｎｇＦａｃｔｏｒ），一般取值为0.85
-     */
+    //Damping Factor is usually set as 0.85, here is d.
     static final float d = 0.85f;
-
     static final int max_iter = 200;
     static final float min_diff = 0.001f;
 
@@ -42,41 +45,68 @@ public class SearchEngine
         //filter by a useless word list ---wordList
         Map<String, Set<String>> words = new HashMap<String, Set<String>>();
         //words is a map, 一个字符串对应给他投分的字符串集合
-        Queue<String> que = new LinkedList<String>();
-        for (String w : wordList)
+        for(int i=0;i<wordList.size();i++)
         {
-            if (!words.containsKey(w))
-            {
-                words.put(w, new HashSet<String>());
-            }
-            que.offer(w);
-            if (que.size() > 5)
-            {
-                que.poll();
-            }
-            
-            for (String w1 : que)
-            {
-                for (String w2 : que)
-                {
-                    if (w1.equals(w2))
-                    {
-                        continue;
-                    }
-
-                    words.get(w1).add(w2);
-                    words.get(w2).add(w1);
-                }
-            }
-            //相互添加前后5个词汇到list中
+        	String w1 = wordList.get(i);
+        	if(!words.containsKey(w1))
+        	{
+        		words.put(w1, new HashSet<String>());
+        	}
+        	if(i<5 && (i+5)>=wordList.size())
+        	{
+        		for(String str:wordList)
+        		{
+        			if(!str.equals(w1))
+        			{
+        				words.get(w1).add(str);
+        			}
+        		}
+        	}
+        	else if(i<5 && (i+5)<wordList.size())
+        	{
+        		for(int j=1;j<=i;j++)
+        		{
+        			if(!wordList.get(i-j).equals(w1))
+        				words.get(w1).add(wordList.get(i-j));
+        		}
+        		for(int j=1;j<=5;j++)
+        		{
+        			if(!wordList.get(i+j).equals(w1))
+        				words.get(w1).add(wordList.get(i+j));
+        		}
+        	}
+        	else if(i>wordList.size()-6)
+        	{
+        		for(int j=1;j<=5;j++)
+        		{
+        			if(!wordList.get(i-j).equals(w1))
+        				words.get(w1).add(wordList.get(i-j));
+        		}
+        		for(int j=1;j<=wordList.size()-i-1;j++)
+        		{
+        			if(!wordList.get(i+j).equals(w1))
+        				words.get(w1).add(wordList.get(i+j));
+        		}
+        	}
+        	else if(i<=wordList.size()-6 && i>=5)
+        	{
+        		for(int j=1;j<=5;j++)
+        		{
+        			if(!wordList.get(i-j).equals(w1))
+        				words.get(w1).add(wordList.get(i-j));
+        			if(!wordList.get(i+j).equals(w1))
+        				words.get(w1).add(wordList.get(i+j));
+        		}
+        	}
         }
 //        System.out.println(words);
         Map<String, Float> score = new HashMap<String, Float>();
-        //a map which map the token in the file to a score
+        //the score map contains the last round calculate result
         for (int i = 0; i < max_iter; ++i)
         {
             Map<String, Float> m = new HashMap<String, Float>();
             float max_diff = 0;
+            
             for (Map.Entry<String, Set<String>> entry : words.entrySet())
             {
                 String key = entry.getKey();
@@ -90,6 +120,7 @@ public class SearchEngine
                 }
                 max_diff = Math.max(max_diff, Math.abs(m.get(key) - (score.get(key) == null ? 0 : score.get(key))));
             }
+            
             score = m;
             if (max_diff <= min_diff) break;
             //迭代已完成，不变动了
@@ -104,7 +135,7 @@ public class SearchEngine
             }
         });
         //将分数排序
-        String result = "";
+        /*String result = "";
         if(entryList.size()>nKeyword)
         {
 	        for (int i = 0; i < nKeyword; ++i)
@@ -118,19 +149,19 @@ public class SearchEngine
 	        {
 	            result += entryList.get(i).getKey() + " " + entryList.get(i).getValue()+ "分#";
 	        }
-        }
+        }*/
         return entryList;
     }
     
     //calculate a score for each page
     public  static void the_last_step(String user_input , Page page, float proper)
     {
-    	List<Map.Entry<String, Float>> map = new SearchEngine().getKeyword("", page.content);
-    	List<Map.Entry<String, Float>> title = new SearchEngine().getKeyword("", page.title);
-    	map.forEach( tem -> { if(tem.getKey().equals(user_input))
+    	List<Map.Entry<String, Float>> contentTokenList = new SearchEngine().getKeyword("", page.content);
+    	List<Map.Entry<String, Float>> titleTokenList = new SearchEngine().getKeyword("", page.title);
+    	contentTokenList.forEach( tem -> { if(tem.getKey().equals(user_input))
     							page.points += tem.getValue();   });
     	
-    	title.forEach(tem -> {  if(tem.getKey().equals(user_input))  
+    	titleTokenList.forEach(tem -> {  if(tem.getKey().equals(user_input))  
     									page.points += tem.getValue()*5;   });
     	
     	page.tags.forEach(str -> {  if(str.equals(user_input)) 
@@ -232,13 +263,14 @@ public class SearchEngine
 			Thread t2 = new Thread(tt,"thread2");
 			Thread t3 = new Thread(tt,"thread3");
 			Thread t4 = new Thread(tt,"thread4");
-			Thread t5 = new Thread(tt,"thread5");
+			//Thread t5 = new Thread(tt,"thread5");
 			t1.start();
 			t2.start();
 			t3.start();
 			t4.start();
-			t5.start();
-			while(! (!t1.isAlive() && !t2.isAlive() && !t3.isAlive() && !t4.isAlive() && !t5.isAlive()) )
+			//t5.start();
+			//while(! (!t1.isAlive() && !t2.isAlive() && !t3.isAlive() && !t4.isAlive() && !t5.isAlive()) )
+			while(! (!t1.isAlive() && !t2.isAlive() && !t3.isAlive() && !t4.isAlive()) )
 			{
 				
 			}
