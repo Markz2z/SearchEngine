@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" id="WebApp_ID" version="2.5">
+  <servlet>
+    <servlet-name>SearchEngine</servlet-name>
+    <servlet-class>ustc.edu.cn.version.textrank.SearchEngineServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SearchEngine</servlet-name>
+    <url-pattern>/searchEngine</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <display-name>SearchEngineView</display-name>
+    <servlet-name>SearchEngineView</servlet-name>
+    <servlet-class>ustc.edu.cn.version.textrank.SearchEngineView</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>SearchEngineView</servlet-name>
+    <url-pattern>/searchEngineView</url-pattern>
+  </servlet-mapping>
+</web-app>
